@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34031.279
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ITCubeRG", "ITCubeRG\ITCubeRG.csproj", "{6465076F-6711-4B26-B82D-38083D28B0F3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6465076F-6711-4B26-B82D-38083D28B0F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6465076F-6711-4B26-B82D-38083D28B0F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6465076F-6711-4B26-B82D-38083D28B0F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6465076F-6711-4B26-B82D-38083D28B0F3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EB46EF8E-2111-457F-A4B5-F755C3601B74}
+	EndGlobalSection
+EndGlobal
