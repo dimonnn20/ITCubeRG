@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using OpenFileDialog = System.Windows.Forms.OpenFileDialog;
 
 namespace ITCubeRG
 {
@@ -21,9 +22,12 @@ namespace ITCubeRG
     /// </summary>
     public partial class MainWindow : Window
     {
+        private Program program;
         public MainWindow()
         {
             InitializeComponent();
+            program = new Program();    
+            program.ProgressChanged += UpdateProgressBar;
         }
 
         private void Choose_Button_Click(object sender, RoutedEventArgs e)
@@ -36,13 +40,28 @@ namespace ITCubeRG
                 string selectedFilePath = saveFileDialog.FileName;
                 PathToSaveBox.Text = selectedFilePath;
                 // Делайте что-то с выбранным путем сохранения файла
-                MessageBox.Show($"Выбран файл: {selectedFilePath}");
+                // MessageBox.Show($"Выбран файл: {selectedFilePath}");
             }
+
         }
 
-        private void Generate_Button_Click(object sender, RoutedEventArgs e)
+        private async void Generate_Button_Click(object sender, RoutedEventArgs e)
         {
-
+            System.Security.SecureString securePassword = PasswordBox.SecurePassword;
+            program.Login = LoginBox.Text;
+            program.Password = new System.Net.NetworkCredential(string.Empty, securePassword).Password;
+            program.Month = MonthComboBox.Text;
+            program.Year = Convert.ToInt32(YearComboBox.Text);
+            program.PathToSave = PathToSaveBox.Text;
+            progressPopup.IsOpen = true;
+            await program.StartAsync();
+            progressPopup.IsOpen = false;
+            MessageBox.Show($"Done! The reports successfuly saved to {program.PathToSave}");
+        }
+        private void UpdateProgressBar(int value)
+        {
+            // Обновление ProgressBar в основном потоке
+            progressBar.Value = value;
         }
     }
 }
