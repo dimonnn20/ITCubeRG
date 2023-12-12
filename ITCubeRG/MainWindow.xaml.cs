@@ -14,6 +14,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using OpenFileDialog = System.Windows.Forms.OpenFileDialog;
+using System.IO;
+using Path = System.IO.Path;
 
 namespace ITCubeRG
 {
@@ -38,7 +40,10 @@ namespace ITCubeRG
             if (saveFileDialog.ShowDialog() == true)
             {
                 string selectedFilePath = saveFileDialog.FileName;
-                PathToSaveBox.Text = selectedFilePath;
+                //PathToSaveBox.Text = selectedFilePath;
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.Append(Path.GetDirectoryName(selectedFilePath)).Append("\\");
+                PathToSaveBox.Text = stringBuilder.ToString();
                 // Делайте что-то с выбранным путем сохранения файла
                 // MessageBox.Show($"Выбран файл: {selectedFilePath}");
             }
@@ -56,7 +61,7 @@ namespace ITCubeRG
             progressPopup.IsOpen = true;
             await program.StartAsync();
             progressPopup.IsOpen = false;
-            MessageBox.Show($"Done! The reports successfuly saved to {program.PathToSave}");
+           
         }
         private void UpdateProgressBar(int value)
         {

@@ -12,7 +12,9 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Xml;
+using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
 namespace ITCubeRG
 {
@@ -27,6 +29,8 @@ namespace ITCubeRG
         private string SessionId = "";
         private DateTimeFormatInfo dtfi = new CultureInfo("en-US").DateTimeFormat;
         public event Action<int> ProgressChanged;
+        private int startId;
+        private int endId;
 
         public Program()
         {
@@ -51,9 +55,37 @@ namespace ITCubeRG
             //await Console.Out.WriteLineAsync($"Place to save report : {ConfigurationManager.AppSettings["PathToSaveReport"]}");
             try
             {
+                switch (Year)
+                {
+                    case 2022:
+                        {
+                            startId = 12500;
+                            endId = 16000;
+                            break;
+                        }
+                    case 2023:
+                        {
+                            startId = 15000;
+                            endId = 19000;
+                            break;
+                        }
+                    case 2024:
+                        {
+                            startId = 17000;
+                            endId = 21000;
+                            break;
+                        }
+                    default:
+                        {
+                            startId = 0;
+                            endId = 20000;
+                            break;
+                        }
+
+                }
                 SessionId = await getToken();
                 sw.Start();
-                List<string> resultList = await Task.Run(async () => await Generate(17000, 18000));
+                List<string> resultList = await Task.Run(async () => await Generate(startId, endId));
                 if (resultList.Count != 0)
                 {
                     await WriteToFile(resultList);
@@ -61,6 +93,8 @@ namespace ITCubeRG
                 }
                 else
                 {
+                    System.Windows.Forms.MessageBox.Show("There is no data, that meet the parameters","ERROR",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                    throw new Exception("There is no data meet the parameters");
                     //await Console.Out.WriteLineAsync("There were no data that meet the parameters");
                 }
                 sw.Stop();
@@ -215,7 +249,7 @@ namespace ITCubeRG
                     //    //Console.WriteLine($"Completed {i} iterations from {endId}, time left = " + (timeLeft == 0 ? ".." : timeLeft.ToString()) + " seconds ");
                     //    sw.Restart();
                     //}
-                    OnProgressChanged((i-startId)/10);
+                    OnProgressChanged(((i - startId) * 100) / (endId - startId));
                     List<string> tempList = await Request(i);
                     list.AddRange(tempList);
                 }
@@ -291,9 +325,9 @@ namespace ITCubeRG
             {
                 PathToSave = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
             }
-            else 
+            else
             {
-                PathToSave = Path.Combine(PathToSave, fileName);
+                PathToSave = Path.Combine(Path.GetDirectoryName(PathToSave), fileName);
 
             }
             using (FileStream stream = new FileStream(PathToSave, FileMode.OpenOrCreate))
@@ -304,6 +338,7 @@ namespace ITCubeRG
                     await stream.WriteAsync(Encoding.Default.GetBytes("\n"), 0, 1);
                 }
             }
+            System.Windows.Forms.MessageBox.Show($"Done! The report successfuly saved to {PathToSave}");
             // await Console.Out.WriteLineAsync($"Report is successfuly saved to {pathToSave}");
         }
         private string RemoveParagraphs(string input)

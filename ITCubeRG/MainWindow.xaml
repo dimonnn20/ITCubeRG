@@ -6,7 +6,7 @@
         xmlns:dialogs="clr-namespace:Microsoft.Win32;assembly=PresentationFramework"
         xmlns:local="clr-namespace:ITCubeRG"
         mc:Ignorable="d"
-        Title="ITCubeRG" Height="450" Width="450">
+        Title="ITCubeRG" Height="460" Width="450">
     <Grid Background="{DynamicResource {x:Static SystemColors.GradientInactiveCaptionBrushKey}}">
         <TextBlock HorizontalAlignment="Left" Margin="25,27,0,0" TextWrapping="Wrap" Text="Login" VerticalAlignment="Top" FontSize="20" FontWeight="Bold"/>
         <TextBox HorizontalAlignment="Left" x:Name="LoginBox" Margin="135,34,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="200" Height="20" FontSize="16"/>
@@ -30,11 +30,6 @@
             </ComboBox>
 
             <ComboBox x:Name="YearComboBox" Width="119" Height="26">
-                <ComboBoxItem Content="2017"/>
-                <ComboBoxItem Content="2018"/>
-                <ComboBoxItem Content="2019"/>
-                <ComboBoxItem Content="2020"/>
-                <ComboBoxItem Content="2021"/>
                 <ComboBoxItem Content="2022"/>
                 <ComboBoxItem Content="2023"/>
                 <ComboBoxItem Content="2024"/>
