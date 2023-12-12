@@ -388,6 +388,7 @@ namespace ITCubeRG
                 }
                 else
                 {
+                    System.Windows.Forms.MessageBox.Show("Session id is not found. Login or password are not correct !!! ", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     throw new Exception("Session id is not found. Login or password are not correct !!! ");
                 }
             }

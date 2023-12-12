@@ -9,7 +9,7 @@
         Title="ITCubeRG" Height="460" Width="450">
     <Grid Background="{DynamicResource {x:Static SystemColors.GradientInactiveCaptionBrushKey}}">
         <TextBlock HorizontalAlignment="Left" Margin="25,27,0,0" TextWrapping="Wrap" Text="Login" VerticalAlignment="Top" FontSize="20" FontWeight="Bold"/>
-        <TextBox HorizontalAlignment="Left" x:Name="LoginBox" Margin="135,34,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="200" Height="20" FontSize="16"/>
+        <TextBox HorizontalAlignment="Left" x:Name="LoginBox" Margin="135,34,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="200" Height="22" FontSize="16"/>
         <TextBlock HorizontalAlignment="Left" Margin="25,85,0,0" TextWrapping="Wrap" Text="Password" VerticalAlignment="Top" FontSize="20" FontWeight="Bold"/>
         <TextBlock HorizontalAlignment="Left" Margin="25,154,0,0" TextWrapping="Wrap" Text="Date of report" VerticalAlignment="Top" FontSize="20" FontWeight="Bold"/>
         <PasswordBox HorizontalAlignment="Left" x:Name="PasswordBox" Margin="135,92,0,0"  Width="200" Height="20" VerticalAlignment="Top"/>
