@@ -157,6 +157,9 @@ namespace ITCubeRG
                                                 {
                                                     int count = nameOfProducts.Count;
                                                     StringBuilder stringBuilder = new StringBuilder();
+                                                    //stringBuilder.Append("numberOfOrder").Append(";").Append(dateOfOrder.ToString("yyyy-MM-dd")).Append(";").Append("nameOfProducts").Append(";").Append("nettoPrices").Append(";").Append("currencyList").Append(";").Append("pricePLN").Append(";").Append("category").Append(";").Append("id");
+                                                    //resultOfOneId.Add(stringBuilder.ToString());
+                                                    //stringBuilder.Clear();
                                                     for (int i = 0; i < count; i++)
                                                     {
                                                         if (currencyList[i].Equals("PLN"))
@@ -169,7 +172,7 @@ namespace ITCubeRG
                                                         }
                                                         else
                                                             pricePLN = 0;
-                                                        stringBuilder.Append(numberOfOrder).Append(";").Append(dateOfOrder.ToString("yyyy-MM-dd")).Append(";").Append(nameOfProducts[i]).Append(";").Append(nettoPrices[i]).Append(";").Append(currencyList[i]).Append(";").Append(currencyList[i]).Append(pricePLN).Append(currencyList[i]).Append(";").Append(category[i]).Append(";").Append(id);
+                                                        stringBuilder.Append(numberOfOrder).Append(";").Append(dateOfOrder.ToString("yyyy-MM-dd")).Append(";").Append(nameOfProducts[i]).Append(";").Append(nettoPrices[i]).Append(";").Append(currencyList[i]).Append(";").Append(pricePLN).Append(";").Append(category[i]).Append(";").Append(id);
                                                         resultOfOneId.Add(stringBuilder.ToString());
                                                         stringBuilder.Clear();
                                                     }
