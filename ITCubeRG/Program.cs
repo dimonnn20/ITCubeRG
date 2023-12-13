@@ -15,6 +15,7 @@ using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Xml;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
+using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace ITCubeRG
 {
@@ -53,8 +54,6 @@ namespace ITCubeRG
             //await Console.Out.WriteLineAsync($"Year of report: {ConfigurationManager.AppSettings["Year"]}");
             //await Console.Out.WriteLineAsync($"Month of report: {ConfigurationManager.AppSettings["Month"]}");
             //await Console.Out.WriteLineAsync($"Place to save report : {ConfigurationManager.AppSettings["PathToSaveReport"]}");
-            try
-            {
                 switch (Year)
                 {
                     case 2022:
@@ -83,6 +82,8 @@ namespace ITCubeRG
                         }
 
                 }
+                try
+                {
                 SessionId = await getToken();
                 sw.Start();
                 List<string> resultList = await Task.Run(async () => await Generate(startId, endId));
@@ -101,10 +102,7 @@ namespace ITCubeRG
             }
             catch (Exception ex)
             {
-                ConsoleColor originalColor = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Red;
-                //await Console.Out.WriteLineAsync(ex.Message);
-                Console.ForegroundColor = originalColor;
+                System.Windows.Forms.MessageBox.Show(ex.Message, "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -113,8 +111,6 @@ namespace ITCubeRG
             List<string> resultOfOneId = new List<string>();
             string numberOfOrder = "";
             DateTime dateOfOrder;
-
-
             string url = $"http://crmlog.ewabis.com.pl:8080/crm/Jsp/viewOrder.jsp;jsessionid={SessionId}?command=viewOrder&nextPage=viewOrder.jsp&mode=view&OrderId={id}";
             using (HttpClient client = new HttpClient())
             {
@@ -123,6 +119,7 @@ namespace ITCubeRG
                     HttpResponseMessage response = await client.GetAsync(url);
                     if (response.IsSuccessStatusCode)
                     {
+                        System.Windows.Forms.MessageBox.Show(response.Content.ToString());
                         string htmlContent = await response.Content.ReadAsStringAsync();
                         HtmlDocument htmlDoc = new HtmlDocument();
                         htmlDoc.LoadHtml(htmlContent);
@@ -175,18 +172,20 @@ namespace ITCubeRG
                         }
                         else
                         {
+                            System.Windows.Forms.MessageBox.Show("Access token is not correct", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             throw new Exception("Access token is not correct");
                         }
                     }
                     else
                     {
-                        Console.WriteLine($"ERROR: {response.StatusCode} - {response.ReasonPhrase}");
+                        System.Windows.Forms.MessageBox.Show($"ERROR: {response.StatusCode} - {response.ReasonPhrase}", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        throw new Exception($"ERROR: {response.StatusCode} - {response.ReasonPhrase}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.ToString());
-                    throw;
+                    System.Windows.Forms.MessageBox.Show("Error during internet connection. ", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    throw new Exception(" Error during internet connection");
                 }
             }
             return resultOfOneId;
@@ -259,7 +258,8 @@ namespace ITCubeRG
             catch (Exception ex)
             {
                 //Console.WriteLine($"Exception in method Generate: {ex.Message}");
-                throw;
+                //throw new Exception($"Exception in method Generate: {ex.Message}");
+                throw new Exception($"Exception in method Generate. ");
             }
         }
 
@@ -373,24 +373,32 @@ namespace ITCubeRG
                 new KeyValuePair<string, string>("LoginInternalConnection", "1"),
                 new KeyValuePair<string, string>("LoginReload", "1"),
             });
-                HttpResponseMessage response = await client.PostAsync(url, formContent);
-                // Печать статуса ответа
-                //Console.WriteLine($"Статус код: {response.StatusCode}");
-                // Печать тела ответа
-                string responseBody = await response.Content.ReadAsStringAsync();
-                //Console.WriteLine($"Тело ответа: {responseBody}");
-                int startIndex = responseBody.IndexOf("jsessionid=") + "jsessionid=".Length;
-                int endIndex = responseBody.IndexOf("?Param=True", startIndex);
-                if (startIndex >= 0 && endIndex >= 0)
+                HttpResponseMessage response;
+                try { 
+                    response = await client.PostAsync(url, formContent);
+                    // Печать статуса ответа
+                    //Console.WriteLine($"Статус код: {response.StatusCode}");
+                    // Печать тела ответа
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    //Console.WriteLine($"Тело ответа: {responseBody}");
+                    int startIndex = responseBody.IndexOf("jsessionid=") + "jsessionid=".Length;
+                    int endIndex = responseBody.IndexOf("?Param=True", startIndex);
+                    if (startIndex >= 0 && endIndex >= 0)
+                    {
+                        token = responseBody.Substring(startIndex, endIndex - startIndex);
+                        //await Console.Out.WriteLineAsync("Log in successfuly");
+                    }
+                    else
+                    {
+                        System.Windows.Forms.MessageBox.Show("Session id is not found. Login or password are not correct !!! ", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        throw new Exception("Session id is not found. Login or password are not correct !!! ");
+                    }
+                } catch (Exception ex)
                 {
-                    token = responseBody.Substring(startIndex, endIndex - startIndex);
-                    //await Console.Out.WriteLineAsync("Log in successfuly");
+                    throw new Exception("ERROR during internet connection. ");
                 }
-                else
-                {
-                    System.Windows.Forms.MessageBox.Show("Session id is not found. Login or password are not correct !!! ", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    throw new Exception("Session id is not found. Login or password are not correct !!! ");
-                }
+                
+
             }
 
 

@@ -16,6 +16,8 @@ using System.Windows.Shapes;
 using OpenFileDialog = System.Windows.Forms.OpenFileDialog;
 using System.IO;
 using Path = System.IO.Path;
+using System.Windows.Forms;
+using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 namespace ITCubeRG
 {
@@ -52,6 +54,13 @@ namespace ITCubeRG
 
         private async void Generate_Button_Click(object sender, RoutedEventArgs e)
         {
+            if (string.IsNullOrEmpty(LoginBox.Text) || string.IsNullOrEmpty(MonthComboBox.Text) || string.IsNullOrEmpty(YearComboBox.Text)
+               || string.IsNullOrEmpty(PasswordBox.ToString()))
+            {
+                System.Windows.Forms.MessageBox.Show("The field cannot be empty", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else
+            {
             System.Security.SecureString securePassword = PasswordBox.SecurePassword;
             program.Login = LoginBox.Text;
             program.Password = new System.Net.NetworkCredential(string.Empty, securePassword).Password;
@@ -59,8 +68,11 @@ namespace ITCubeRG
             program.Year = Convert.ToInt32(YearComboBox.Text);
             program.PathToSave = PathToSaveBox.Text;
             progressPopup.IsOpen = true;
+            
             await program.StartAsync();
             progressPopup.IsOpen = false;
+            }
+            
            
         }
         private void UpdateProgressBar(int value)
