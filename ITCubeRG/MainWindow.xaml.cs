@@ -30,7 +30,9 @@ namespace ITCubeRG
         public MainWindow()
         {
             InitializeComponent();
-            program = new Program();    
+            string configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log4net.config");
+            log4net.Config.XmlConfigurator.Configure(new FileInfo(configFilePath));
+            program = new Program();
             program.ProgressChanged += UpdateProgressBar;
         }
 
@@ -61,19 +63,26 @@ namespace ITCubeRG
             }
             else
             {
-            System.Security.SecureString securePassword = PasswordBox.SecurePassword;
-            program.Login = LoginBox.Text;
-            program.Password = new System.Net.NetworkCredential(string.Empty, securePassword).Password;
-            program.Month = MonthComboBox.Text;
-            program.Year = Convert.ToInt32(YearComboBox.Text);
-            program.PathToSave = PathToSaveBox.Text;
-            progressPopup.IsOpen = true;
-            
-            await program.StartAsync();
-            progressPopup.IsOpen = false;
+                System.Security.SecureString securePassword = PasswordBox.SecurePassword;
+                program.Login = LoginBox.Text;
+                program.Password = new System.Net.NetworkCredential(string.Empty, securePassword).Password;
+                program.Month = MonthComboBox.Text;
+                program.Year = Convert.ToInt32(YearComboBox.Text);
+                program.PathToSave = PathToSaveBox.Text;
+                progressPopup.IsOpen = true;
+                try
+                {
+                    await program.StartAsync();
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.Forms.MessageBox.Show(ex.Message, "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                progressPopup.IsOpen = false;
             }
-            
-           
+
+
         }
         private void UpdateProgressBar(int value)
         {

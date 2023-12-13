@@ -48,61 +48,55 @@ namespace ITCubeRG
 
         public async Task StartAsync()
         {
+            Logger.Logger.Log.Info($"The program started working with the following parameters Login = {Login}, Year = {Year}, Month = {Month}, Path = {PathToSave}");
             var sw = new Stopwatch();
             //await Console.Out.WriteLineAsync("The program starts creating report with following parameters:");
             //SessionId = ExtractJSessionId(ConfigurationManager.AppSettings["Token"]);
             //await Console.Out.WriteLineAsync($"Year of report: {ConfigurationManager.AppSettings["Year"]}");
             //await Console.Out.WriteLineAsync($"Month of report: {ConfigurationManager.AppSettings["Month"]}");
             //await Console.Out.WriteLineAsync($"Place to save report : {ConfigurationManager.AppSettings["PathToSaveReport"]}");
-                switch (Year)
-                {
-                    case 2022:
-                        {
-                            startId = 12500;
-                            endId = 16000;
-                            break;
-                        }
-                    case 2023:
-                        {
-                            startId = 15000;
-                            endId = 19000;
-                            break;
-                        }
-                    case 2024:
-                        {
-                            startId = 17000;
-                            endId = 21000;
-                            break;
-                        }
-                    default:
-                        {
-                            startId = 0;
-                            endId = 20000;
-                            break;
-                        }
-
-                }
-                try
-                {
-                SessionId = await getToken();
-                sw.Start();
-                List<string> resultList = await Task.Run(async () => await Generate(startId, endId));
-                if (resultList.Count != 0)
-                {
-                    await WriteToFile(resultList);
-                    //await Console.Out.WriteLineAsync($"Success!\nTime spent : {sw.Elapsed} ");
-                }
-                else
-                {
-                    System.Windows.Forms.MessageBox.Show("There is no data, that meet the parameters","ERROR",MessageBoxButtons.OK,MessageBoxIcon.Error);
-                    throw new Exception("There is no data meet the parameters");
-                    //await Console.Out.WriteLineAsync("There were no data that meet the parameters");
-                }
-                sw.Stop();
-            }
-            catch (Exception ex)
+            switch (Year)
             {
-                System.Windows.Forms.MessageBox.Show(ex.Message, "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                case 2022:
+                    {
+                        startId = 12500;
+                        endId = 16000;
+                        break;
+                    }
+                case 2023:
+                    {
+                        startId = 15000;
+                        endId = 19000;
+                        break;
+                    }
+                case 2024:
+                    {
+                        startId = 17000;
+                        endId = 21000;
+                        break;
+                    }
+                default:
+                    {
+                        startId = 0;
+                        endId = 20000;
+                        break;
+                    }
+
+            }
+            SessionId = await getToken();
+            sw.Start();
+            List<string> resultList = await Task.Run(async () => await Generate(17000, 17500));
+            sw.Stop();
+            if (resultList.Count != 0)
+            {
+                Logger.Logger.Log.Info($"Report was generated for {sw.ElapsedMilliseconds} ms");
+                await WriteToFile(resultList);
+                //await Console.Out.WriteLineAsync($"Success!\nTime spent : {sw.Elapsed} ");
+            }
+            else
+            {
+                Logger.Logger.Log.Info("There were no data that meet the parameters");
+                throw new Exception("There is no data meet the parameters");
             }
         }
 
@@ -119,7 +113,7 @@ namespace ITCubeRG
                     HttpResponseMessage response = await client.GetAsync(url);
                     if (response.IsSuccessStatusCode)
                     {
-                        System.Windows.Forms.MessageBox.Show(response.Content.ToString());
+                        Logger.Logger.Log.Info("Status Code is Success");
                         string htmlContent = await response.Content.ReadAsStringAsync();
                         HtmlDocument htmlDoc = new HtmlDocument();
                         htmlDoc.LoadHtml(htmlContent);
@@ -172,20 +166,23 @@ namespace ITCubeRG
                         }
                         else
                         {
-                            System.Windows.Forms.MessageBox.Show("Access token is not correct", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            //System.Windows.Forms.MessageBox.Show("Access token is not correct", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            Logger.Logger.Log.Info("Access token is not correct");
                             throw new Exception("Access token is not correct");
                         }
                     }
                     else
                     {
-                        System.Windows.Forms.MessageBox.Show($"ERROR: {response.StatusCode} - {response.ReasonPhrase}", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        throw new Exception($"ERROR: {response.StatusCode} - {response.ReasonPhrase}");
+                        //System.Windows.Forms.MessageBox.Show($"ERROR: {response.StatusCode} - {response.ReasonPhrase}", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Logger.Logger.Log.Info($"Response code is not success: {response.StatusCode} - {response.ReasonPhrase}");
+                        throw new Exception($"Response code is not success: {response.StatusCode} - {response.ReasonPhrase}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    System.Windows.Forms.MessageBox.Show("Error during internet connection. ", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    throw new Exception(" Error during internet connection");
+                    //System.Windows.Forms.MessageBox.Show("Error during internet connection. ", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Logger.Logger.Log.Info("Error during internet connection"+ex.ToString());
+                    throw new Exception("Error during internet connection");
                 }
             }
             return resultOfOneId;
@@ -235,7 +232,7 @@ namespace ITCubeRG
             {
                 Random random = new Random();
                 Stopwatch sw = new Stopwatch();
-                //await Console.Out.WriteLineAsync("The program started generating report");
+                Logger.Logger.Log.Info("The program started generating report");
                 List<string> list = new List<string>();
                 for (int i = startId; i <= endId; i++)
                 {
@@ -374,7 +371,8 @@ namespace ITCubeRG
                 new KeyValuePair<string, string>("LoginReload", "1"),
             });
                 HttpResponseMessage response;
-                try { 
+                try
+                {
                     response = await client.PostAsync(url, formContent);
                     // Печать статуса ответа
                     //Console.WriteLine($"Статус код: {response.StatusCode}");
@@ -390,14 +388,15 @@ namespace ITCubeRG
                     }
                     else
                     {
-                        System.Windows.Forms.MessageBox.Show("Session id is not found. Login or password are not correct !!! ", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        //System.Windows.Forms.MessageBox.Show("Session id is not found. Login or password are not correct !!! ", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         throw new Exception("Session id is not found. Login or password are not correct !!! ");
                     }
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
                     throw new Exception("ERROR during internet connection. ");
                 }
-                
+
 
             }
 
