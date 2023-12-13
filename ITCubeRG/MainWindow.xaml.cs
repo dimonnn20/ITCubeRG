@@ -57,7 +57,7 @@ namespace ITCubeRG
 
         private async void Generate_Button_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(LoginBox.Text) || string.IsNullOrEmpty(MonthComboBox.Text) || string.IsNullOrEmpty(YearComboBox.Text)
+            if (string.IsNullOrEmpty(LoginBox.Text) || string.IsNullOrEmpty(MonthComboBox.Text) || string.IsNullOrEmpty(YearComboBox.Text) || string.IsNullOrEmpty(ExchangeRateBox.Text)
                || string.IsNullOrEmpty(PasswordBox.ToString()))
             {
                 System.Windows.Forms.MessageBox.Show("The field cannot be empty", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -70,6 +70,7 @@ namespace ITCubeRG
                 program.Month = MonthComboBox.Text;
                 program.Year = Convert.ToInt32(YearComboBox.Text);
                 program.PathToSave = PathToSaveBox.Text;
+                program.ExchangeRate = Convert.ToDouble(ExchangeRateBox.Text);
                 progressPopup.IsOpen = true;
                 try
                 {

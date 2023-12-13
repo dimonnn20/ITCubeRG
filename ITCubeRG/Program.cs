@@ -27,6 +27,7 @@ namespace ITCubeRG
         public string Password { get; set; }
         public string Month { get; set; }
         public int Year { get; set; }
+        public double ExchangeRate { get; set; }
         public string PathToSave { get; set; }
         private string SessionId = "";
         private DateTimeFormatInfo dtfi = new CultureInfo("en-US").DateTimeFormat;
@@ -150,6 +151,7 @@ namespace ITCubeRG
                                                 List<string> nettoPrices = GetNettoPriceList(htmlDoc);
                                                 List<string> currencyList = GetCurrencyList(htmlDoc);
                                                 List<string> category = GetCategoryList(nameOfProducts);
+                                                double pricePLN; 
 
                                                 if (nameOfProducts.Count == nettoPrices.Count && nettoPrices.Count == currencyList.Count)
                                                 {
@@ -157,7 +159,17 @@ namespace ITCubeRG
                                                     StringBuilder stringBuilder = new StringBuilder();
                                                     for (int i = 0; i < count; i++)
                                                     {
-                                                        stringBuilder.Append(numberOfOrder).Append(";").Append(dateOfOrder.ToString("yyyy-MM-dd")).Append(";").Append(nameOfProducts[i]).Append(";").Append(nettoPrices[i]).Append(";").Append(currencyList[i]).Append(";").Append(category[i]).Append(";").Append(id);
+                                                        if (currencyList[i].Equals("PLN"))
+                                                        {
+                                                            pricePLN = Convert.ToDouble(nettoPrices[i]);
+                                                        }
+                                                        else if (currencyList[i].Equals("EUR"))
+                                                        {
+                                                            pricePLN = Convert.ToDouble(nettoPrices[i]) * ExchangeRate;
+                                                        }
+                                                        else
+                                                            pricePLN = 0;
+                                                        stringBuilder.Append(numberOfOrder).Append(";").Append(dateOfOrder.ToString("yyyy-MM-dd")).Append(";").Append(nameOfProducts[i]).Append(";").Append(nettoPrices[i]).Append(";").Append(currencyList[i]).Append(";").Append(currencyList[i]).Append(pricePLN).Append(currencyList[i]).Append(";").Append(category[i]).Append(";").Append(id);
                                                         resultOfOneId.Add(stringBuilder.ToString());
                                                         stringBuilder.Clear();
                                                     }
@@ -295,6 +307,7 @@ namespace ITCubeRG
             }
             return values;
         }
+
 
         private async Task WriteToFile(List<string> lines)
         {
