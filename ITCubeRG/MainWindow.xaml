@@ -43,9 +43,10 @@
         <Button  Content="Generate" HorizontalAlignment="Left" Margin="119,321,0,0" VerticalAlignment="Top" Height="56" Width="200" Click="Generate_Button_Click"/>
 
 
-        <Popup Name="progressPopup" IsOpen="False" Placement="Center" Width="200" Height="100">
+        <Popup Name="progressPopup" IsOpen="False" Placement="Center" Width="360" Height="160">
             <Grid Background="White">
-                <TextBlock Text="Processing..." VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <Image Source="C:\Users\dzmitrym\Desktop\myagkaya.jpg" VerticalAlignment="Top" Width="100" Height="100" Visibility="Visible" />
+                <TextBlock Text="{Binding ProgressText}" VerticalAlignment="Bottom" Margin="0,0,0,40" HorizontalAlignment="Center" />
                 <ProgressBar Name="progressBar" Width="180" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,10"/>
             </Grid>
         </Popup>

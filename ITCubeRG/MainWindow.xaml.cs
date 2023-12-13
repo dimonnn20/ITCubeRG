@@ -33,6 +33,7 @@ namespace ITCubeRG
             string configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log4net.config");
             log4net.Config.XmlConfigurator.Configure(new FileInfo(configFilePath));
             program = new Program();
+            DataContext = program;
             program.ProgressChanged += UpdateProgressBar;
         }
 
@@ -89,5 +90,6 @@ namespace ITCubeRG
             // Обновление ProgressBar в основном потоке
             progressBar.Value = value;
         }
+
     }
 }

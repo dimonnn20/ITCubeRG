@@ -1,6 +1,7 @@
 ﻿using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration;
 using System.Diagnostics;
 using System.Globalization;
@@ -19,7 +20,7 @@ using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace ITCubeRG
 {
-    internal class Program
+    internal class Program :INotifyPropertyChanged
     {
         private readonly string Pattern = @"^--- \/ OR\/\d{4}\/\d{2}\/\d{5}$|OF\/\d{4}\/\d{2}\/\d{5} \/ OR\/\d{4}\/\d{2}\/\d{5}$";
         public string Login { get; set; }
@@ -30,25 +31,30 @@ namespace ITCubeRG
         private string SessionId = "";
         private DateTimeFormatInfo dtfi = new CultureInfo("en-US").DateTimeFormat;
         public event Action<int> ProgressChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
         private int startId;
         private int endId;
+        private string progressText;
+        public string ProgressText
+        {
+            get { return progressText; }
+            set
+            {
+                if (progressText != value)
+                {
+                    progressText = value;
+                    OnPropertyChanged(nameof(ProgressText));
+                }
+            }
+        }
 
         public Program()
         {
         }
 
-        //public Program(string login, string password, string month, int year, string path)
-        //{
-        //    Login = login;
-        //    Password = password;
-        //    Month = month;
-        //    Year = year;
-        //    PathToSave = path;
-        //}
-
         public async Task StartAsync()
         {
-            Logger.Logger.Log.Info($"The program started working with the following parameters Login = {Login}, Year = {Year}, Month = {Month}, Path = {PathToSave}");
+            Logger.Logger.Log.Info($"The program starts working with the following parameters Login = {Login}, Year = {Year}, Month = {Month}, Path = {PathToSave}");
             var sw = new Stopwatch();
             //await Console.Out.WriteLineAsync("The program starts creating report with following parameters:");
             //SessionId = ExtractJSessionId(ConfigurationManager.AppSettings["Token"]);
@@ -91,11 +97,10 @@ namespace ITCubeRG
             {
                 Logger.Logger.Log.Info($"Report was generated for {sw.ElapsedMilliseconds} ms");
                 await WriteToFile(resultList);
-                //await Console.Out.WriteLineAsync($"Success!\nTime spent : {sw.Elapsed} ");
             }
             else
             {
-                Logger.Logger.Log.Info("There were no data that meet the parameters");
+                Logger.Logger.Log.Error("There were no data that meet the parameters");
                 throw new Exception("There is no data meet the parameters");
             }
         }
@@ -113,7 +118,6 @@ namespace ITCubeRG
                     HttpResponseMessage response = await client.GetAsync(url);
                     if (response.IsSuccessStatusCode)
                     {
-                        Logger.Logger.Log.Info("Status Code is Success");
                         string htmlContent = await response.Content.ReadAsStringAsync();
                         HtmlDocument htmlDoc = new HtmlDocument();
                         htmlDoc.LoadHtml(htmlContent);
@@ -167,21 +171,21 @@ namespace ITCubeRG
                         else
                         {
                             //System.Windows.Forms.MessageBox.Show("Access token is not correct", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            Logger.Logger.Log.Info("Access token is not correct");
+                            Logger.Logger.Log.Error("Access token is not correct");
                             throw new Exception("Access token is not correct");
                         }
                     }
                     else
                     {
                         //System.Windows.Forms.MessageBox.Show($"ERROR: {response.StatusCode} - {response.ReasonPhrase}", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        Logger.Logger.Log.Info($"Response code is not success: {response.StatusCode} - {response.ReasonPhrase}");
+                        Logger.Logger.Log.Error($"Response code is not success: {response.StatusCode} - {response.ReasonPhrase}");
                         throw new Exception($"Response code is not success: {response.StatusCode} - {response.ReasonPhrase}");
                     }
                 }
                 catch (Exception ex)
                 {
                     //System.Windows.Forms.MessageBox.Show("Error during internet connection. ", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    Logger.Logger.Log.Info("Error during internet connection"+ex.ToString());
+                    Logger.Logger.Log.Error("Error during internet connection" + ex.ToString());
                     throw new Exception("Error during internet connection");
                 }
             }
@@ -228,41 +232,28 @@ namespace ITCubeRG
 
         private async Task<List<string>> Generate(int startId, int endId)
         {
-            try
+            Stopwatch sw = new Stopwatch();
+            Logger.Logger.Log.Info("The program started generating report");
+            List<string> list = new List<string>();
+            for (int i = startId; i <= endId; i++)
             {
-                Random random = new Random();
-                Stopwatch sw = new Stopwatch();
-                Logger.Logger.Log.Info("The program started generating report");
-                List<string> list = new List<string>();
-                for (int i = startId; i <= endId; i++)
+                sw.Start();
+                if (i % 100 == 0)
                 {
-                    sw.Start();
-                    //if (i % 100 == 0)
-                    //{
-                    //    sw.Stop();
-                    //    int timeLeft = ((int)sw.Elapsed.TotalSeconds * ((endId - i) / 100));
-                    //    //Console.SetCursorPosition(0, Console.CursorTop - 1);
-                    //    //Console.WriteLine($"Completed {i} iterations from {endId}, time left = " + (timeLeft == 0 ? ".." : timeLeft.ToString()) + " seconds ");
-                    //    sw.Restart();
-                    //}
-                    OnProgressChanged(((i - startId) * 100) / (endId - startId));
-                    List<string> tempList = await Request(i);
-                    list.AddRange(tempList);
+                    sw.Stop();
+                    int timeLeft = ((int)sw.Elapsed.TotalSeconds * ((endId - i) / 100));
+                    ProgressText =  $"Completed {i} iterations from {endId}, time left = " + (timeLeft == 0 ? ".." : timeLeft.ToString()) + " seconds ";
+                    sw.Restart();
                 }
-                //await Console.Out.WriteLineAsync("The program ended generating report");
-                return list;
+                OnProgressChanged(((i - startId) * 100) / (endId - startId));
+                List<string> tempList = await Request(i);
+                list.AddRange(tempList);
             }
-            catch (Exception ex)
-            {
-                //Console.WriteLine($"Exception in method Generate: {ex.Message}");
-                //throw new Exception($"Exception in method Generate: {ex.Message}");
-                throw new Exception($"Exception in method Generate. ");
-            }
+            return list;
         }
 
         private List<string> GetNameOfProductList(HtmlDocument htmlDoc)
         {
-            //var tdNodes = htmlDoc.DocumentNode.SelectNodes($"//tr[@class='tablelistitem']//td[@valign='top']//a");
             var tdNodes = htmlDoc.DocumentNode.SelectNodes($"//tr[@class='tablelistitem']//td[@class='maindata']//a");
             List<string> values = new List<string>();
             if (tdNodes != null)
@@ -307,17 +298,7 @@ namespace ITCubeRG
 
         private async Task WriteToFile(List<string> lines)
         {
-            //int length = str.Length;
-            //string pathToSave = @"C:\folderToDel\strContent.txt";
-            //using (FileStream stream = new FileStream(pathToSave, FileMode.OpenOrCreate))
-            //{
-            //    await stream.WriteAsync(Encoding.Default.GetBytes(str), 0, Encoding.Default.GetByteCount(str));
-            //    await stream.FlushAsync();
-            //    await Console.Out.WriteLineAsync("Successfuly");
-            //}
-            //await Console.Out.WriteLineAsync($"Length of saved string is = {File.ReadAllBytes(pathToSave).Length} ");
             string fileName = $"{DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss")}.txt";
-            //string pathToSave = ConfigurationManager.AppSettings["PathToSaveReport"] + fileName;
             if (string.IsNullOrEmpty(PathToSave))
             {
                 PathToSave = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
@@ -335,8 +316,8 @@ namespace ITCubeRG
                     await stream.WriteAsync(Encoding.Default.GetBytes("\n"), 0, 1);
                 }
             }
+            Logger.Logger.Log.Info($"The report successfuly saved to {PathToSave}");
             System.Windows.Forms.MessageBox.Show($"Done! The report successfuly saved to {PathToSave}");
-            // await Console.Out.WriteLineAsync($"Report is successfuly saved to {pathToSave}");
         }
         private string RemoveParagraphs(string input)
         {
@@ -374,30 +355,31 @@ namespace ITCubeRG
                 try
                 {
                     response = await client.PostAsync(url, formContent);
-                    // Печать статуса ответа
-                    //Console.WriteLine($"Статус код: {response.StatusCode}");
-                    // Печать тела ответа
-                    string responseBody = await response.Content.ReadAsStringAsync();
-                    //Console.WriteLine($"Тело ответа: {responseBody}");
-                    int startIndex = responseBody.IndexOf("jsessionid=") + "jsessionid=".Length;
-                    int endIndex = responseBody.IndexOf("?Param=True", startIndex);
-                    if (startIndex >= 0 && endIndex >= 0)
-                    {
-                        token = responseBody.Substring(startIndex, endIndex - startIndex);
-                        //await Console.Out.WriteLineAsync("Log in successfuly");
-                    }
-                    else
-                    {
-                        //System.Windows.Forms.MessageBox.Show("Session id is not found. Login or password are not correct !!! ", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        throw new Exception("Session id is not found. Login or password are not correct !!! ");
-                    }
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception("ERROR during internet connection. ");
+                    Logger.Logger.Log.Error("There is no internet connection " + ex.ToString());
+                    throw new Exception($"There is no internet connection");
                 }
 
-
+                // Печать статуса ответа
+                //Console.WriteLine($"Статус код: {response.StatusCode}");
+                // Печать тела ответа
+                string responseBody = await response.Content.ReadAsStringAsync();
+                //Console.WriteLine($"Тело ответа: {responseBody}");
+                int startIndex = responseBody.IndexOf("jsessionid=") + "jsessionid=".Length;
+                int endIndex = responseBody.IndexOf("?Param=True", startIndex);
+                if (startIndex >= 0 && endIndex >= 0)
+                {
+                    token = responseBody.Substring(startIndex, endIndex - startIndex);
+                    //await Console.Out.WriteLineAsync("Log in successfuly");
+                }
+                else
+                {
+                    //System.Windows.Forms.MessageBox.Show("Session id is not found. Login or password are not correct !!! ", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Logger.Logger.Log.Info("Session id is not found. Login or password are not correct !!! ");
+                    throw new Exception("Session id is not found. Login or password are not correct !!! ");
+                }
             }
 
 
@@ -408,5 +390,10 @@ namespace ITCubeRG
             // Вызов события в основном потоке UI
             App.Current.Dispatcher.Invoke(() => ProgressChanged?.Invoke(value));
         }
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+       
     }
 }
