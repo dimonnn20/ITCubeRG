@@ -73,7 +73,7 @@ namespace ITCubeRG
                 case 2023:
                     {
                         startId = 15000;
-                        endId = 19000;
+                        endId = 18000;
                         break;
                     }
                 case 2024:
@@ -92,7 +92,7 @@ namespace ITCubeRG
             }
             SessionId = await getToken();
             sw.Start();
-            List<string> resultList = await Task.Run(async () => await Generate(17000, 17500));
+            List<string> resultList = await Task.Run(async () => await Generate(startId, endId));
             sw.Stop();
             if (resultList.Count != 0)
             {
@@ -157,9 +157,6 @@ namespace ITCubeRG
                                                 {
                                                     int count = nameOfProducts.Count;
                                                     StringBuilder stringBuilder = new StringBuilder();
-                                                    //stringBuilder.Append("numberOfOrder").Append(";").Append(dateOfOrder.ToString("yyyy-MM-dd")).Append(";").Append("nameOfProducts").Append(";").Append("nettoPrices").Append(";").Append("currencyList").Append(";").Append("pricePLN").Append(";").Append("category").Append(";").Append("id");
-                                                    //resultOfOneId.Add(stringBuilder.ToString());
-                                                    //stringBuilder.Clear();
                                                     for (int i = 0; i < count; i++)
                                                     {
                                                         if (currencyList[i].Equals("PLN"))
@@ -185,21 +182,18 @@ namespace ITCubeRG
                         }
                         else
                         {
-                            //System.Windows.Forms.MessageBox.Show("Access token is not correct", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             Logger.Logger.Log.Error("Access token is not correct");
                             throw new Exception("Access token is not correct");
                         }
                     }
                     else
                     {
-                        //System.Windows.Forms.MessageBox.Show($"ERROR: {response.StatusCode} - {response.ReasonPhrase}", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         Logger.Logger.Log.Error($"Response code is not success: {response.StatusCode} - {response.ReasonPhrase}");
                         throw new Exception($"Response code is not success: {response.StatusCode} - {response.ReasonPhrase}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    //System.Windows.Forms.MessageBox.Show("Error during internet connection. ", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     Logger.Logger.Log.Error("Error during internet connection" + ex.ToString());
                     throw new Exception("Error during internet connection");
                 }
@@ -257,7 +251,7 @@ namespace ITCubeRG
                 {
                     sw.Stop();
                     int timeLeft = ((int)sw.Elapsed.TotalSeconds * ((endId - i) / 100));
-                    ProgressText =  $"Completed {i} iterations from {endId}, time left = " + (timeLeft == 0 ? ".." : timeLeft.ToString()) + " seconds ";
+                    ProgressText =  $"Completed {i} records from {endId}, time left = " + (timeLeft == 0 ? ".." : timeLeft.ToString()) + " seconds ";
                     sw.Restart();
                 }
                 OnProgressChanged(((i - startId) * 100) / (endId - startId));
@@ -388,11 +382,10 @@ namespace ITCubeRG
                 if (startIndex >= 0 && endIndex >= 0)
                 {
                     token = responseBody.Substring(startIndex, endIndex - startIndex);
-                    //await Console.Out.WriteLineAsync("Log in successfuly");
+                    Logger.Logger.Log.Info("Log in successfuly");
                 }
                 else
                 {
-                    //System.Windows.Forms.MessageBox.Show("Session id is not found. Login or password are not correct !!! ", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     Logger.Logger.Log.Info("Session id is not found. Login or password are not correct !!! ");
                     throw new Exception("Session id is not found. Login or password are not correct !!! ");
                 }

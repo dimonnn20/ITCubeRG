@@ -49,8 +49,6 @@ namespace ITCubeRG
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.Append(Path.GetDirectoryName(selectedFilePath)).Append("\\");
                 PathToSaveBox.Text = stringBuilder.ToString();
-                // Делайте что-то с выбранным путем сохранения файла
-                // MessageBox.Show($"Выбран файл: {selectedFilePath}");
             }
 
         }
