@@ -20,7 +20,7 @@ using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace ITCubeRG
 {
-    internal class Program :INotifyPropertyChanged
+    internal class Program : INotifyPropertyChanged
     {
         private readonly string Pattern = @"^--- \/ OR\/\d{4}\/\d{2}\/\d{5}$|OF\/\d{4}\/\d{2}\/\d{5} \/ OR\/\d{4}\/\d{2}\/\d{5}$";
         public string Login { get; set; }
@@ -29,7 +29,7 @@ namespace ITCubeRG
         public int Year { get; set; }
         public double ExchangeRate { get; set; }
         public string PathToSave { get; set; }
-        private string SessionId = "";
+        private AccessToken token;
         private DateTimeFormatInfo dtfi = new CultureInfo("en-US").DateTimeFormat;
         public event Action<int> ProgressChanged;
         public event PropertyChangedEventHandler PropertyChanged;
@@ -90,7 +90,8 @@ namespace ITCubeRG
                     }
 
             }
-            SessionId = await getToken();
+            token = await getToken();
+            
             sw.Start();
             List<string> resultList = await Task.Run(async () => await Generate(startId, endId));
             sw.Stop();
@@ -108,11 +109,15 @@ namespace ITCubeRG
 
         private async Task<List<string>> Request(int id)
         {
+            
             List<string> resultOfOneId = new List<string>();
             string numberOfOrder = "";
             DateTime dateOfOrder;
-            string url = $"http://crmlog.ewabis.com.pl:8080/crm/Jsp/viewOrder.jsp;jsessionid={SessionId}?command=viewOrder&nextPage=viewOrder.jsp&mode=view&OrderId={id}";
-            using (HttpClient client = new HttpClient())
+            string url = $"http://crm.logopakeast.pl:8080/crm/Jsp/viewOrder.jsp;jsessionid={token.SessionId}?command=viewOrder&nextPage=viewOrder.jsp&mode=view&OrderId={id}";
+            var handler = new HttpClientHandler();
+            handler.CookieContainer = new System.Net.CookieContainer();
+            handler.CookieContainer.Add(new Uri(url), new System.Net.Cookie("ITCubeSessionId_0_18", token.Cookies));
+            using (HttpClient client = new HttpClient(handler))
             {
                 try
                 {
@@ -127,7 +132,7 @@ namespace ITCubeRG
                         if (text.Length != 0)
                         {
                             // Find the number of order
-                            HtmlNodeCollection paragraphs = htmlDoc.DocumentNode.SelectNodes("//td[contains(b, 'Numer oferty/zam.')]/following-sibling::td");
+                            HtmlNodeCollection paragraphs = htmlDoc.DocumentNode.SelectNodes("//td[contains(b, 'Nr oferty/zamówienia: ')]/following-sibling::td");
                             if (paragraphs != null)
                             {
                                 foreach (HtmlNode paragraph in paragraphs)
@@ -135,7 +140,7 @@ namespace ITCubeRG
                                     numberOfOrder = paragraph.InnerText.ToString().Trim();
                                 }
                                 // Find date of the order
-                                HtmlNodeCollection paragraphs2 = htmlDoc.DocumentNode.SelectNodes("//td[contains(b, 'Data zł./sp.: ')]/following-sibling::td");
+                                HtmlNodeCollection paragraphs2 = htmlDoc.DocumentNode.SelectNodes("//td[contains(b, 'Złożenie/Sprzedaż: ')]/following-sibling::td");
                                 if (Regex.IsMatch(numberOfOrder, Pattern) && paragraphs2 != null)
                                 {
                                     foreach (HtmlNode paragraph in paragraphs2)
@@ -151,7 +156,7 @@ namespace ITCubeRG
                                                 List<string> nettoPrices = GetNettoPriceList(htmlDoc);
                                                 List<string> currencyList = GetCurrencyList(htmlDoc);
                                                 List<string> category = GetCategoryList(nameOfProducts);
-                                                double pricePLN; 
+                                                double pricePLN;
 
                                                 if (nameOfProducts.Count == nettoPrices.Count && nettoPrices.Count == currencyList.Count)
                                                 {
@@ -182,8 +187,8 @@ namespace ITCubeRG
                         }
                         else
                         {
-                            Logger.Logger.Log.Error("Access token is not correct");
-                            throw new Exception("Access token is not correct");
+                            Logger.Logger.Log.Error("Access accessToken is not correct");
+                            throw new Exception("Access accessToken is not correct");
                         }
                     }
                     else
@@ -251,7 +256,7 @@ namespace ITCubeRG
                 {
                     sw.Stop();
                     int timeLeft = ((int)sw.Elapsed.TotalSeconds * ((endId - i) / 100));
-                    ProgressText =  $"Completed {i} records from {endId}, time left = " + (timeLeft == 0 ? ".." : timeLeft.ToString()) + " seconds ";
+                    ProgressText = $"Completed {i} records from {endId}, time left = " + (timeLeft == 0 ? ".." : timeLeft.ToString()) + " seconds ";
                     sw.Restart();
                 }
                 OnProgressChanged(((i - startId) * 100) / (endId - startId));
@@ -263,7 +268,7 @@ namespace ITCubeRG
 
         private List<string> GetNameOfProductList(HtmlDocument htmlDoc)
         {
-            var tdNodes = htmlDoc.DocumentNode.SelectNodes($"//tr[@class='tablelistitem']//td[@class='maindata']//a");
+            var tdNodes = htmlDoc.DocumentNode.SelectNodes($"//tr[@class='tablelistitem']//td[@class='maindata titledata']//a");
             List<string> values = new List<string>();
             if (tdNodes != null)
             {
@@ -277,7 +282,7 @@ namespace ITCubeRG
 
         private List<string> GetNettoPriceList(HtmlDocument htmlDoc)
         {
-            var tdNodes = htmlDoc.DocumentNode.SelectNodes("//table[@class='tablelist itchistory']//td[@valign='top'][position() = 11]");
+            var tdNodes = htmlDoc.DocumentNode.SelectNodes($"//tr[@class='tablelistitem']//td[@valign='top'][position() = 11]");
             List<string> values = new List<string>();
             if (tdNodes != null)
             {
@@ -292,7 +297,7 @@ namespace ITCubeRG
 
         private List<string> GetCurrencyList(HtmlDocument htmlDoc)
         {
-            var tdNodes = htmlDoc.DocumentNode.SelectNodes("//table[@class='tablelist itchistory']//td[@valign='top'][position() = 14]");
+            var tdNodes = htmlDoc.DocumentNode.SelectNodes("//tr[@class='tablelistitem']//td[@valign='top'][position() = 14]");
             List<string> values = new List<string>();
             if (tdNodes != null)
             {
@@ -338,26 +343,29 @@ namespace ITCubeRG
             return result;
         }
 
-        private async Task<string> getToken()
+        private async Task<AccessToken> getToken()
         {
-            string token = "";
-            string url = "http://crmlog.ewabis.com.pl:8080/crm/Jsp/commandCenterAction.jsp";
+            string cookies = "";
+            string sessionId = "";
+            string url = @"http://crm.logopakeast.pl:8080/crm/Jsp/commandCenterAction.jsp";
             using (HttpClient client = new HttpClient())
             {
                 var formContent = new FormUrlEncodedContent(new[]
                 {
                 new KeyValuePair<string, string>("command", "login"),
                 new KeyValuePair<string, string>("nextPage", "welcomeFrame.jsp"),
-                new KeyValuePair<string, string>("login", Login),
+                new KeyValuePair<string, string>("login",Login ),
                 new KeyValuePair<string, string>("password", Password),
+                new KeyValuePair<string, string>("isSW", ""),
                 new KeyValuePair<string, string>("isExplorer", "0"),
                 new KeyValuePair<string, string>("isExplorer10up", "0"),
                 new KeyValuePair<string, string>("isFirefox", "0"),
                 new KeyValuePair<string, string>("isSafari", "1"),
                 new KeyValuePair<string, string>("isMobile", "0"),
                 new KeyValuePair<string, string>("isiPad", "0"),
-                new KeyValuePair<string, string>("submited.x", "40"),
-                new KeyValuePair<string, string>("submited.y", "8"),
+                new KeyValuePair<string, string>("viewPort", ""),
+                new KeyValuePair<string, string>("submited.x", "66"),
+                new KeyValuePair<string, string>("submited.y", "9"),
                 new KeyValuePair<string, string>("LoginInternalConnection", "1"),
                 new KeyValuePair<string, string>("LoginReload", "1"),
             });
@@ -371,17 +379,17 @@ namespace ITCubeRG
                     Logger.Logger.Log.Error("There is no internet connection " + ex.ToString());
                     throw new Exception($"There is no internet connection");
                 }
-
-                // Печать статуса ответа
-                //Console.WriteLine($"Статус код: {response.StatusCode}");
-                // Печать тела ответа
                 string responseBody = await response.Content.ReadAsStringAsync();
-                //Console.WriteLine($"Тело ответа: {responseBody}");
-                int startIndex = responseBody.IndexOf("jsessionid=") + "jsessionid=".Length;
-                int endIndex = responseBody.IndexOf("?Param=True", startIndex);
-                if (startIndex >= 0 && endIndex >= 0)
+                responseBody = responseBody.Trim();
+                int startIndexSessionId = responseBody.IndexOf("jsessionid=") + "jsessionid=".Length;
+                int endIndexSessionId = responseBody.IndexOf("?Param=True", startIndexSessionId);
+                int startIndexCookies = responseBody.IndexOf("ITCubeSessionId_0_18=") + "ITCubeSessionId_0_18=".Length;
+                int endIndexCookies = responseBody.IndexOf("\";window", startIndexCookies);
+
+                if (startIndexSessionId >= 0 && endIndexSessionId >= 0 && startIndexCookies >= 0 && endIndexCookies >= 0)
                 {
-                    token = responseBody.Substring(startIndex, endIndex - startIndex);
+                    sessionId = responseBody.Substring(startIndexSessionId, endIndexSessionId - startIndexSessionId);
+                    cookies = responseBody.Substring(startIndexCookies, endIndexCookies - startIndexCookies);
                     Logger.Logger.Log.Info("Log in successfuly");
                 }
                 else
@@ -390,9 +398,9 @@ namespace ITCubeRG
                     throw new Exception("Session id is not found. Login or password are not correct !!! ");
                 }
             }
+            AccessToken accessToken = new AccessToken(cookies, sessionId);
 
-
-            return token;
+            return accessToken;
         }
         protected virtual void OnProgressChanged(int value)
         {
@@ -403,6 +411,6 @@ namespace ITCubeRG
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-       
+
     }
 }
