@@ -37,11 +37,11 @@
         </StackPanel>
         <TextBlock HorizontalAlignment="Left" Margin="175,153,0,0" TextWrapping="Wrap" Text="Month" VerticalAlignment="Top"/>
         <TextBlock HorizontalAlignment="Left" Margin="175,182,0,0" TextWrapping="Wrap" Text="Year" VerticalAlignment="Top"/>
-        <TextBlock HorizontalAlignment="Left" Margin="25,264,0,0" TextWrapping="Wrap" Text="Path" VerticalAlignment="Top" FontSize="20" FontWeight="Bold"/>
-        <Button HorizontalAlignment="Left" Content="Choose" Margin="318,267,0,0" Height="30" Width="100" Click="Choose_Button_Click" VerticalAlignment="Top"/>
-        <TextBox HorizontalAlignment="Left" x:Name="PathToSaveBox" Margin="92,272,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="197" Height="19"/>
-        <TextBox HorizontalAlignment="Left" x:Name="ExchangeRateBox" Margin="219,227,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="84" Height="19"/>
-        <Button  Content="Generate" HorizontalAlignment="Left" Margin="119,321,0,0" VerticalAlignment="Top" Height="56" Width="200" Click="Generate_Button_Click"/>
+        <TextBlock HorizontalAlignment="Left" Margin="28,314,0,0" TextWrapping="Wrap" Text="Path" VerticalAlignment="Top" FontSize="20" FontWeight="Bold"/>
+        <Button HorizontalAlignment="Left" Content="Choose" Margin="321,317,0,0" Height="30" Width="100" Click="Choose_Button_Click" VerticalAlignment="Top"/>
+        <TextBox HorizontalAlignment="Left" x:Name="PathToSaveBox" Margin="95,322,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="197" Height="19"/>
+        <TextBox HorizontalAlignment="Left" x:Name="ExchangeRateBoxEur" Margin="219,227,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="84" Height="19"/>
+        <Button  Content="Generate" HorizontalAlignment="Left" Margin="128,366,0,0" VerticalAlignment="Top" Height="56" Width="200" Click="Generate_Button_Click"/>
 
 
         <Popup Name="progressPopup" IsOpen="False" Placement="Center" Width="360" Height="160">
@@ -55,6 +55,8 @@
             </Grid>
         </Popup>
         <TextBlock HorizontalAlignment="Left" Margin="25,219,0,0" TextWrapping="Wrap" Text="Exchange rate EUR" VerticalAlignment="Top" FontSize="20" FontWeight="Bold"/>
+        <TextBox HorizontalAlignment="Left" x:Name="ExchangeRateBoxGbp" Margin="219,270,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="84" Height="19"/>
+        <TextBlock HorizontalAlignment="Left" Margin="25,262,0,0" TextWrapping="Wrap" Text="Exchange rate GBP" VerticalAlignment="Top" FontSize="20" FontWeight="Bold"/>
 
     </Grid>
 </Window>

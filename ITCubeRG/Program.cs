@@ -27,7 +27,8 @@ namespace ITCubeRG
         public string Password { get; set; }
         public string Month { get; set; }
         public int Year { get; set; }
-        public double ExchangeRate { get; set; }
+        public double ExchangeRateEur { get; set; }
+        public double ExchangeRateGbp { get; set; }
         public string PathToSave { get; set; }
         private AccessToken token;
         private DateTimeFormatInfo dtfi = new CultureInfo("en-US").DateTimeFormat;
@@ -91,7 +92,7 @@ namespace ITCubeRG
 
             }
             token = await getToken();
-            
+
             sw.Start();
             List<string> resultList = await Task.Run(async () => await Generate(startId, endId));
             sw.Stop();
@@ -109,7 +110,7 @@ namespace ITCubeRG
 
         private async Task<List<string>> Request(int id)
         {
-            
+
             List<string> resultOfOneId = new List<string>();
             string numberOfOrder = "";
             DateTime dateOfOrder;
@@ -170,7 +171,13 @@ namespace ITCubeRG
                                                         }
                                                         else if (currencyList[i].Equals("EUR"))
                                                         {
-                                                            pricePLN = Convert.ToDouble(nettoPrices[i]) * ExchangeRate;
+
+                                                            pricePLN = Math.Round(Convert.ToDouble(nettoPrices[i]) * ExchangeRateEur, 2);
+
+                                                        }
+                                                        else if (currencyList[i].Equals("GBP"))
+                                                        {
+                                                            pricePLN = Math.Round(Convert.ToDouble(nettoPrices[i]) * ExchangeRateGbp, 2);
                                                         }
                                                         else
                                                             pricePLN = 0;
