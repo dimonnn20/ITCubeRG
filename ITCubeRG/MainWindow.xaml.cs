@@ -18,6 +18,7 @@ using System.IO;
 using Path = System.IO.Path;
 using System.Windows.Forms;
 using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
+using System.Diagnostics;
 
 namespace ITCubeRG
 {
@@ -42,17 +43,33 @@ namespace ITCubeRG
 
         private void Choose_Button_Click(object sender, RoutedEventArgs e)
         {
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*";
-
-            if (saveFileDialog.ShowDialog() == true)
+            using (var folderBrowserDialog = new FolderBrowserDialog())
             {
-                string selectedFilePath = saveFileDialog.FileName;
-                //PathToSaveBox.Text = selectedFilePath;
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.Append(Path.GetDirectoryName(selectedFilePath)).Append("\\");
-                PathToSaveBox.Text = stringBuilder.ToString();
+                DialogResult result = folderBrowserDialog.ShowDialog();
+
+                if (result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(folderBrowserDialog.SelectedPath))
+                {
+                    string selectedFilePath = folderBrowserDialog.SelectedPath;
+                    PathToSaveBox.Text = selectedFilePath;
+                    //StringBuilder stringBuilder = new StringBuilder();
+                    //stringBuilder.Append(Path.GetDirectoryName(selectedFilePath)).Append("\\");
+                    //PathToSaveBox.Text = stringBuilder.ToString();
+
+                }
             }
+
+
+            //SaveFileDialog saveFileDialog = new SaveFileDialog();
+            //saveFileDialog.Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*";
+
+            //if (saveFileDialog.ShowDialog() == true)
+            //{
+            //    string selectedFilePath = saveFileDialog.FileName;
+            //    PathToSaveBox.Text = selectedFilePath;
+            //    StringBuilder stringBuilder = new StringBuilder();
+            //    stringBuilder.Append(Path.GetDirectoryName(selectedFilePath)).Append("\\");
+            //    PathToSaveBox.Text = stringBuilder.ToString();
+            //}
 
         }
 
@@ -77,6 +94,7 @@ namespace ITCubeRG
                 try
                 {
                     await program.StartAsync();
+                    Process.Start("explorer.exe", Path.GetDirectoryName(program.PathToSave));
                 }
                 catch (Exception ex)
                 {
@@ -84,6 +102,7 @@ namespace ITCubeRG
                 }
 
                 progressPopup.IsOpen = false;
+                
             }
 
 

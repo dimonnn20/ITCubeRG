@@ -323,11 +323,12 @@ namespace ITCubeRG
             string fileName = $"{DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss")}.txt";
             if (string.IsNullOrEmpty(PathToSave))
             {
-                PathToSave = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+                PathToSave = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,fileName);
             }
             else
             {
-                PathToSave = Path.Combine(Path.GetDirectoryName(PathToSave), fileName);
+                PathToSave = Path.Combine(PathToSave, fileName);
+                
 
             }
             using (FileStream stream = new FileStream(PathToSave, FileMode.OpenOrCreate))
