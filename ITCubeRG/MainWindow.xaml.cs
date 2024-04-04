@@ -19,6 +19,9 @@ using Path = System.IO.Path;
 using System.Windows.Forms;
 using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 using System.Diagnostics;
+using System.Net.Http;
+using System.Xml.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace ITCubeRG
 {
@@ -39,6 +42,7 @@ namespace ITCubeRG
             program = new Program();
             DataContext = program;
             program.ProgressChanged += UpdateProgressBar;
+            UpdateExchangeRate();
         }
 
         private void Choose_Button_Click(object sender, RoutedEventArgs e)
@@ -113,6 +117,81 @@ namespace ITCubeRG
             progressBar.Value = value;
         }
 
+        private async void MonthComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            await UpdateExchangeRate();
+        }
+        private DateTime GetDateFromForm()
+        {
+            int month = DateTime.ParseExact(((ComboBoxItem)MonthComboBox.SelectedItem).Content.ToString(), "MMMM", System.Globalization.CultureInfo.InvariantCulture).Month;
+            int year = Convert.ToInt32(((ComboBoxItem)YearComboBox.SelectedItem).Content.ToString());
+            DateTime date = new DateTime(year, month, 1);
+            return date;
+        }
 
+        private async Task<Dictionary<string, decimal>> GetExchangeRate(DateTime lastDayOfMonth, DateTime firstDayOfMonth)
+        {
+            Dictionary <string, decimal> ExchangeRates = new Dictionary<string, decimal>();
+            string url = $"https://api.nbp.pl/api/exchangerates/rates/a/eur/{firstDayOfMonth.ToString("yyyy-MM-dd")}/{lastDayOfMonth.ToString("yyyy-MM-dd")}/";
+            string content = await GetPageContent(url);
+            decimal EUR = GetRateValue(content);
+            ExchangeRates.Add("EUR", EUR);
+            url = $"https://api.nbp.pl/api/exchangerates/rates/a/gbp/{firstDayOfMonth.ToString("yyyy-MM-dd")}/{lastDayOfMonth.ToString("yyyy-MM-dd")}/";
+            content = await GetPageContent(url);
+            decimal GBP = GetRateValue(content);
+            ExchangeRates.Add("GBP", GBP);
+            return ExchangeRates;
+        }
+
+        private async Task <string> GetPageContent(string url) 
+        {
+            string content;
+            using (HttpClient client = new HttpClient())
+            {
+                var response = await client.GetAsync(url);
+                if (response.IsSuccessStatusCode)
+                { 
+                    content = await response.Content.ReadAsStringAsync();
+                    return content;
+                }
+            }
+            return null;
+        }
+        private decimal GetRateValue(string content)
+        {
+            if (content != null)
+            {
+                JObject jsonObject = JObject.Parse(content);
+                int size = jsonObject["rates"].Count();
+                decimal midValue = (decimal)jsonObject["rates"][size - 1]["mid"];
+                return midValue;
+            }
+            return 0;
+        }
+
+        private async void YearComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+           await UpdateExchangeRate();
+        }
+
+        private async Task UpdateExchangeRate()
+        {
+            if (MonthComboBox.Text != "" && YearComboBox.Text != "")
+            {
+                DateTime firstDayOfMonth = GetDateFromForm();
+                DateTime lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+                if (firstDayOfMonth != null)
+                {
+                    Dictionary<string, decimal> ExchangeRates = await GetExchangeRate(lastDayOfMonth, firstDayOfMonth);
+                    if (ExchangeRates != null)
+                    {
+                        ExchangeRates.TryGetValue("GBP", out decimal GBP);
+                        ExchangeRates.TryGetValue("EUR", out decimal EUR);
+                        ExchangeRateBoxGbp.Text = GBP.ToString();
+                        ExchangeRateBoxEur.Text = EUR.ToString();
+                    }
+                }
+            }
+        }
     }
 }

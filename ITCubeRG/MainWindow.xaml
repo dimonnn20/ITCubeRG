@@ -14,8 +14,8 @@
         <TextBlock HorizontalAlignment="Left" Margin="25,154,0,0" TextWrapping="Wrap" Text="Date of report" VerticalAlignment="Top" FontSize="20" FontWeight="Bold"/>
         <PasswordBox HorizontalAlignment="Left" x:Name="PasswordBox" Margin="135,92,0,0"  Width="200" Height="22" VerticalAlignment="Top"/>
         <StackPanel Margin="197,154,0,0" HorizontalAlignment="Left" Width="175" Height="73" VerticalAlignment="Top">
-            <ComboBox x:Name="MonthComboBox" Width="119" Height="27" >
-                <ComboBoxItem Content="January"/>
+            <ComboBox x:Name="MonthComboBox" Width="119" Height="27" SelectionChanged="MonthComboBox_SelectionChanged">
+                <ComboBoxItem Content="January" IsSelected="True"/>
                 <ComboBoxItem Content="February"/>
                 <ComboBoxItem Content="March"/>
                 <ComboBoxItem Content="April"/>
@@ -29,10 +29,10 @@
                 <ComboBoxItem Content="December"/>
             </ComboBox>
 
-            <ComboBox x:Name="YearComboBox" Width="119" Height="26">
+            <ComboBox x:Name="YearComboBox" Width="119" Height="26" SelectionChanged="YearComboBox_SelectionChanged">
                 <ComboBoxItem Content="2022"/>
                 <ComboBoxItem Content="2023"/>
-                <ComboBoxItem Content="2024"/>
+                <ComboBoxItem Content="2024" IsSelected="True"/>
             </ComboBox>
         </StackPanel>
         <TextBlock HorizontalAlignment="Left" Margin="175,153,0,0" TextWrapping="Wrap" Text="Month" VerticalAlignment="Top"/>
