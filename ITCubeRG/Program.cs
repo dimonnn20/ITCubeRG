@@ -22,6 +22,7 @@ namespace ITCubeRG
 {
     internal class Program : INotifyPropertyChanged
     {
+        //            AccessToken token = await tokenGenerator.GenerateToken("dmakarau", "Logopak2022!!");
         private readonly string Pattern = @"^--- \/ OR\/\d{4}\/\d{2}\/\d{5}$|OF\/\d{4}\/\d{2}\/\d{5} \/ OR\/\d{4}\/\d{2}\/\d{5}$";
         public string Login { get; set; }
         public string Password { get; set; }
@@ -83,6 +84,12 @@ namespace ITCubeRG
                         endId = 21000;
                         break;
                     }
+                case 2025:
+                    {
+                        startId = 17000;
+                        endId = 25000;
+                        break;
+                    }
                 default:
                     {
                         startId = 0;
@@ -95,6 +102,7 @@ namespace ITCubeRG
 
             sw.Start();
             List<string> resultList = await Task.Run(async () => await Generate(startId, endId));
+
             sw.Stop();
             if (resultList.Count != 0)
             {
@@ -114,44 +122,46 @@ namespace ITCubeRG
             List<string> resultOfOneId = new List<string>();
             string numberOfOrder = "";
             DateTime dateOfOrder;
-            string url = $"http://crm.logopakeast.pl:8080/crm/Jsp/viewOrder.jsp;jsessionid={token.SessionId}?command=viewOrder&nextPage=viewOrder.jsp&mode=view&OrderId={id}";
+            string url = $"https://crm.logopakeast.pl:8443/crm/Jsp/viewOrder.jsp;jsessionid={token.SessionId}?command=viewOrder&nextPage=viewOrder.jsp&mode=view&OrderId={id}";
             var handler = new HttpClientHandler();
             handler.CookieContainer = new System.Net.CookieContainer();
             handler.CookieContainer.Add(new Uri(url), new System.Net.Cookie("ITCubeSessionId_0_18", token.Cookies));
-            using (HttpClient client = new HttpClient(handler))
+            while (true)
             {
-                try
+                using (HttpClient client = new HttpClient(handler))
                 {
-                    HttpResponseMessage response = await client.GetAsync(url);
-                    if (response.IsSuccessStatusCode)
+                    try
                     {
-                        string htmlContent = await response.Content.ReadAsStringAsync();
-                        HtmlDocument htmlDoc = new HtmlDocument();
-                        htmlDoc.LoadHtml(htmlContent);
-                        HtmlNode bodyNode = htmlDoc.DocumentNode.SelectSingleNode("//body");
-                        string text = bodyNode.InnerText.Trim();
-                        if (text.Length != 0)
+                        HttpResponseMessage response = await client.GetAsync(url);
+                        if (response.IsSuccessStatusCode)
                         {
-                            // Find the number of order
-                            HtmlNodeCollection paragraphs = htmlDoc.DocumentNode.SelectNodes("//td[contains(b, 'Nr oferty/zamówienia: ')]/following-sibling::td");
-                            if (paragraphs != null)
+                            string htmlContent = await response.Content.ReadAsStringAsync();
+                            HtmlDocument htmlDoc = new HtmlDocument();
+                            htmlDoc.LoadHtml(htmlContent);
+                            HtmlNode bodyNode = htmlDoc.DocumentNode.SelectSingleNode("//body");
+                            string text = bodyNode.InnerText.Trim();
+                            if (text.Length != 0)
                             {
-                                foreach (HtmlNode paragraph in paragraphs)
+                                // Find the number of order
+                                HtmlNodeCollection paragraphs = htmlDoc.DocumentNode.SelectNodes("//td[contains(b, 'Nr oferty/zamówienia: ')]/following-sibling::td");
+                                if (paragraphs != null)
                                 {
-                                    numberOfOrder = paragraph.InnerText.ToString().Trim();
-                                }
-                                // Find date of the order
-                                HtmlNodeCollection paragraphs2 = htmlDoc.DocumentNode.SelectNodes("//td[contains(b, 'Złożenie/Sprzedaż: ')]/following-sibling::td");
-                                if (Regex.IsMatch(numberOfOrder, Pattern) && paragraphs2 != null)
-                                {
-                                    foreach (HtmlNode paragraph in paragraphs2)
+                                    foreach (HtmlNode paragraph in paragraphs)
                                     {
-                                        string dateTimeString = paragraph.InnerText.ToString().Trim().Substring(0, 10).Trim();
-                                        if (DateTime.TryParseExact(dateTimeString.ToString(), "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out dateOfOrder))
+                                        numberOfOrder = paragraph.InnerText.ToString().Trim();
+                                    }
+                                    // Find date of the order
+                                    HtmlNodeCollection paragraphs2 = htmlDoc.DocumentNode.SelectNodes("//td[contains(b, 'Złożenie/Sprzedaż: ')]/following-sibling::td");
+                                    if (Regex.IsMatch(numberOfOrder, Pattern) && paragraphs2 != null)
+                                    {
+                                        foreach (HtmlNode paragraph in paragraphs2)
                                         {
-                                            DateTime date = DateTime.ParseExact(Month, "MMMM", dtfi);
-                                            if (dateOfOrder.Year == Year && dateOfOrder.Month == date.Month)
+                                            string dateTimeString = paragraph.InnerText.ToString().Trim().Substring(0, 10).Trim();
+                                            if (DateTime.TryParseExact(dateTimeString.ToString(), "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out dateOfOrder))
                                             {
+                                                DateTime date = DateTime.ParseExact(Month, "MMMM", dtfi);
+                                                //if (dateOfOrder.Year == Year && dateOfOrder.Month == date.Month)
+                                                //{
                                                 //Going to lines
                                                 List<string> nameOfProducts = GetNameOfProductList(htmlDoc);
                                                 List<string> nettoPrices = GetNettoPriceList(htmlDoc);
@@ -186,28 +196,30 @@ namespace ITCubeRG
                                                         stringBuilder.Clear();
                                                     }
                                                 }
+                                                //}
                                             }
                                         }
                                     }
                                 }
                             }
+                            else
+                            {
+                                Logger.Logger.Log.Error("Access accessToken is not correct");
+                                throw new Exception("Access accessToken is not correct");
+                            }
                         }
                         else
                         {
-                            Logger.Logger.Log.Error("Access accessToken is not correct");
-                            throw new Exception("Access accessToken is not correct");
+                            Logger.Logger.Log.Error($"Response code is not success: {response.StatusCode} - {response.ReasonPhrase}");
+                            throw new Exception($"Response code is not success: {response.StatusCode} - {response.ReasonPhrase}");
                         }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        Logger.Logger.Log.Error($"Response code is not success: {response.StatusCode} - {response.ReasonPhrase}");
-                        throw new Exception($"Response code is not success: {response.StatusCode} - {response.ReasonPhrase}");
+                        Logger.Logger.Log.Error("Error during internet connection" + ex.ToString());
+                        //throw new Exception("Error during internet connection");
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Logger.Log.Error("Error during internet connection" + ex.ToString());
-                    throw new Exception("Error during internet connection");
+                    break;
                 }
             }
             return resultOfOneId;
@@ -256,6 +268,7 @@ namespace ITCubeRG
             Stopwatch sw = new Stopwatch();
             Logger.Logger.Log.Info("The program started generating report");
             List<string> list = new List<string>();
+            list.Insert(0, "Numer;Data;Nazwa;Cena w walucie;Waluta;Cena w PLN;Grupa;ID");
             for (int i = startId; i <= endId; i++)
             {
                 sw.Start();
@@ -304,7 +317,7 @@ namespace ITCubeRG
 
         private List<string> GetCurrencyList(HtmlDocument htmlDoc)
         {
-            var tdNodes = htmlDoc.DocumentNode.SelectNodes("//tr[@class='tablelistitem']//td[@valign='top'][position() = 14]");
+            var tdNodes = htmlDoc.DocumentNode.SelectNodes("//tr[@class='tablelistitem']//td[@valign='top'][position() = 15]");
             List<string> values = new List<string>();
             if (tdNodes != null)
             {
@@ -323,12 +336,12 @@ namespace ITCubeRG
             string fileName = $"{DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss")}.txt";
             if (string.IsNullOrEmpty(PathToSave))
             {
-                PathToSave = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,fileName);
+                PathToSave = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
             }
             else
             {
                 PathToSave = Path.Combine(PathToSave, fileName);
-                
+
 
             }
             using (FileStream stream = new FileStream(PathToSave, FileMode.OpenOrCreate))
@@ -355,7 +368,8 @@ namespace ITCubeRG
         {
             string cookies = "";
             string sessionId = "";
-            string url = @"http://crm.logopakeast.pl:8080/crm/Jsp/commandCenterAction.jsp";
+            //string url = @"http://crm.logopakeast.pl:8080/crm/Jsp/commandCenterAction.jsp";
+            string url = @"https://crm.logopakeast.pl:8443/crm/Jsp/commandCenterAction.jsp";
             using (HttpClient client = new HttpClient())
             {
                 var formContent = new FormUrlEncodedContent(new[]

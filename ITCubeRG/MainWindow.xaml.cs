@@ -58,14 +58,11 @@ namespace ITCubeRG
                     //StringBuilder stringBuilder = new StringBuilder();
                     //stringBuilder.Append(Path.GetDirectoryName(selectedFilePath)).Append("\\");
                     //PathToSaveBox.Text = stringBuilder.ToString();
-
                 }
             }
 
-
             //SaveFileDialog saveFileDialog = new SaveFileDialog();
             //saveFileDialog.Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*";
-
             //if (saveFileDialog.ShowDialog() == true)
             //{
             //    string selectedFilePath = saveFileDialog.FileName;
@@ -74,7 +71,6 @@ namespace ITCubeRG
             //    stringBuilder.Append(Path.GetDirectoryName(selectedFilePath)).Append("\\");
             //    PathToSaveBox.Text = stringBuilder.ToString();
             //}
-
         }
 
         private async void Generate_Button_Click(object sender, RoutedEventArgs e)
@@ -106,10 +102,8 @@ namespace ITCubeRG
                 }
 
                 progressPopup.IsOpen = false;
-                
+
             }
-
-
         }
         private void UpdateProgressBar(int value)
         {

@@ -32,7 +32,8 @@
             <ComboBox x:Name="YearComboBox" Width="119" Height="26" SelectionChanged="YearComboBox_SelectionChanged">
                 <ComboBoxItem Content="2022"/>
                 <ComboBoxItem Content="2023"/>
-                <ComboBoxItem Content="2024" IsSelected="True"/>
+                <ComboBoxItem Content="2024" />
+                <ComboBoxItem Content="2025" IsSelected="True"/>
             </ComboBox>
         </StackPanel>
         <TextBlock HorizontalAlignment="Left" Margin="175,153,0,0" TextWrapping="Wrap" Text="Month" VerticalAlignment="Top"/>
